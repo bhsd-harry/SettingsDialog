@@ -72,8 +72,8 @@ mw.messages.set( $.extend( wgULS({
         dialog.export().then(() => { $code.append( $success ); },
             err => { $failure.text( mw.msg('gadget-sd-failure', err) ).appendTo( $code );
         }).then(() => {
-            dialog.getPanel().$element.removeClass( 'mw-ajax-loader' );
             btnExport.setDiabled( false );
+            dialog.getPanel().$element.removeClass( 'mw-ajax-loader' );
             $code[0].scrollIntoView( {behavior: 'smooth'} );
         });
     }),
@@ -85,9 +85,9 @@ mw.messages.set( $.extend( wgULS({
         // 4. 准备私有工具函数
         deleteKeys = (arr, obj) => { arr.forEach(ele => { delete obj[ele]; }); },
         buildWidget = (obj) => { // 生成单个OOUI widget
-        obj.widget = new OO.ui[ `${obj.type}InputWidget` ]( obj.config );
+        obj.widget = new OO.ui[ `${obj.type}InputWidget` ]( $.extend({disabled: obj.skin && obj.skin != skin}}, obj.config);
         const layout = new OO.ui.FieldLayout(obj.widget, {label: mw.msg( obj.label ), help: obj.help});
-        deleteKeys(['config', 'label', 'help'], obj);
+        deleteKeys(['config', 'skin', 'label', 'help'], obj);
         return layout;
     },
         clearWidgets = (settings, arr = []) => { // 还原一组OOUI widget
@@ -149,13 +149,13 @@ mw.messages.set( $.extend( wgULS({
         panel.on('active', () => { buildForm(params, panel.$element); });
         if (ready) { return; }
         // 添加按钮，注意手机版的执行时机
-        if (mw.config.get('skin') == 'minerva') {
+        if (skin == 'minerva') {
             mw.hook( 'mobile.menu' ).add(function($menu) {
                 console.log('Hook: mobile.menu, 开始添加小工具设置按钮');
                 $('<a>', {
                     class: 'mw-ui-icon mw-ui-icon-before mw-ui-icon-minerva-settings',
                     text: mw.msg( 'gadget-sd-title' )
-                }).css('color', '#54595d').wrap( '<li>' ).parent().appendTo( $menu.find('ul:not(.hlist)').last() );
+                }).css('color', '#54595d').wrap( '<li>' ).parent().appendTo( $menu.find('ul:not(.hlist)').last() ).click( openDialog );
             });
         }
         else { $( mw.util.addPortletLink('p-cactions', '#', mw.msg('gadget-sd-title')) ).click( openDialog ); }
