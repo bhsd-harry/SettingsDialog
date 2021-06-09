@@ -20,8 +20,8 @@ window.wgULS = wgULS ||
 (() => {
     const skin = mw.config.get('skin');
     if (skin == 'vector') { return; }
-    const detectMenu = (records) => {
-        const $node = $( records[0].addedNodes[0] );
+    const detectMenu = ([record]) => {
+        const $node = $( record.addedNodes[0] );
         if (!$node.hasClass( 'menu' )) { return; }
         mw.hook( 'mobile.menu' ).fire( $node );
         observer.disconnect();
@@ -50,8 +50,9 @@ mw.messages.set( $.extend( wgULS({
     var ready = false, dialog; // 是否是第一次打开对话框
     const skin = mw.config.get('skin'),
         user = mw.config.get('wgUserName'),
+        msg = (key) => mw.msg( `gadget-sd-${key}` ),
         $help = $('<div>', {html: [
-        mw.msg('gadget-sd-help', mw.msg(`gadget-sd-${skin}`)),
+        mw.msg('gadget-sd-help', msg(skin)),
         $('<a>', {href: '/user:星海子/Gadget', target: '_blank', text: mw.msg('gadget-sd-helptext')}),
         '，或',
         $('<a>', {href: '#settingsDialog-btns', text: mw.msg('gadget-sd-exporthelp')}), '。' // 链接跳转到“导出”按钮
@@ -72,7 +73,7 @@ mw.messages.set( $.extend( wgULS({
         dialog.export().then(() => { $code.append( $success ); },
             err => { $failure.text( mw.msg('gadget-sd-failure', err) ).appendTo( $code );
         }).then(() => {
-            btnExport.setDiabled( false );
+            btnExport.setDisabled( false );
             dialog.getPanel().$element.removeClass( 'mw-ajax-loader' );
             $code[0].scrollIntoView( {behavior: 'smooth'} );
         });
@@ -85,24 +86,30 @@ mw.messages.set( $.extend( wgULS({
         // 4. 准备私有工具函数
         deleteKeys = (arr, obj) => { arr.forEach(ele => { delete obj[ele]; }); },
         buildWidget = (obj) => { // 生成单个OOUI widget
-        obj.widget = new OO.ui[ `${obj.type}InputWidget` ]( $.extend({disabled: obj.skin && obj.skin != skin}}, obj.config);
-        const layout = new OO.ui.FieldLayout(obj.widget, {label: mw.msg( obj.label ), help: obj.help});
-        deleteKeys(['config', 'skin', 'label', 'help'], obj);
+        obj.widget = new OO.ui[ `${obj.type}InputWidget` ]( $.extend(
+            {disabled: obj.skin && obj.skin != skin, options: obj.options, value: obj.value},
+            obj.config
+        ) );
+        const layout = new OO.ui.FieldLayout(obj.widget, {label: msg( obj.key ), help: obj.help});
+        deleteKeys(['config', 'label', 'help', 'value'], obj);
         return layout;
     },
-        clearWidgets = (settings, arr = []) => { // 还原一组OOUI widget
-        arr.forEach(ele => { ele.widget.setValue( settings ? settings[ele.key] || '' : '' ); });
+        clearWidgets = (settings = {}, arr = []) => { // 还原一组OOUI widget
+        arr.forEach(({key, widget}) => { widget.setValue( settings[key] || '' ); });
     },
         getValues = (arr = []) => Object.fromEntries( // 获取一组OOUI widget的值
-        arr.map(ele => [ele.key, !ele.widget.isDisabled() && ele.widget.getValue()]).filter(ele => ele[1])
+        arr.map(({key, widget}) => [key, !widget.isDisabled() && widget.getValue()]).filter(ele => ele[1])
     ),
         buildForm = (params, $element) => {
         if (!params.ready) { // 生成表单，只需要执行一次，不用写成SettingsDialog的内置方法
+            const settings = mw.gadgets[ params.name ] || {};
             $element.append([
-                ...(params.items || []).map(ele => buildWidget(ele).$element),
+                ...(params.items || []).map(ele => buildWidget( $.extend(ele, {value: settings[ ele.key ]}) ).$element),
                 ...(params.fields || []).map(ele => {
-                    const field = new OO.ui.FieldsetLayout({ label: mw.msg( ele.label ), help: ele.help,
-                        helpInline: true, items: (ele.items || []).map( buildWidget ) });
+                    const field = new OO.ui.FieldsetLayout({ label: msg( ele.key ), help: ele.help,
+                        helpInline: true, items: (ele.items || []).map(item =>
+                            buildWidget( $.extend({value: (settings[ ele.key ] || {})[ item.key ]}, item) )
+                    )});
                     deleteKeys(['label', 'help'], ele);
                     return field.$element;
                 })
@@ -130,7 +137,7 @@ mw.messages.set( $.extend( wgULS({
         this.$body.append( this.content.$element );
     };
     SettingsDialog.prototype.getActionProcess = function(action) {
-        const gadgets = this.gadgets.filter(ele => ele.ready); // 忽略未加载的小工具
+        const gadgets = this.gadgets.filter(({ready}) => ready); // 忽略未加载的小工具
         if (action == 'save') { gadgets.forEach(ele => { this.saveOptions( ele ); }); }
         else { gadgets.forEach(ele => { this.clearOptions( ele ); }); }
         this.close();
@@ -141,7 +148,7 @@ mw.messages.set( $.extend( wgULS({
      * @Param {Object} 数据对象
      */
     SettingsDialog.prototype.addTab = function(params) {
-        const panel = new OO.ui.TabPanelLayout( params.name, {label: mw.msg( params.label )} );
+        const panel = new OO.ui.TabPanelLayout( params.name, {label: msg( params.name )} );
         delete params.label;
         this.content.addTabPanels( [panel] );
         this.gadgets.push( params );
@@ -155,7 +162,8 @@ mw.messages.set( $.extend( wgULS({
                 $('<a>', {
                     class: 'mw-ui-icon mw-ui-icon-before mw-ui-icon-minerva-settings',
                     text: mw.msg( 'gadget-sd-title' )
-                }).css('color', '#54595d').wrap( '<li>' ).parent().appendTo( $menu.find('ul:not(.hlist)').last() ).click( openDialog );
+                }).css('color', '#54595d').wrap( '<li>' ).parent().click( openDialog )
+                    .appendTo( $menu.find('ul:not(.hlist)').last() );
             });
         }
         else { $( mw.util.addPortletLink('p-cactions', '#', mw.msg('gadget-sd-title')) ).click( openDialog ); }
@@ -177,7 +185,7 @@ mw.messages.set( $.extend( wgULS({
     SettingsDialog.prototype.getObject = function(arg) {
         if (typeof arg == 'object') { return arg; }
         const name = arg || this.getName();
-        return this.gadgets.find(ele => ele.name == name);
+        return this.gadgets.find(({name: n}) => n == name);
     };
     /**
      * @Description: 获取小工具标签页
@@ -197,9 +205,9 @@ mw.messages.set( $.extend( wgULS({
      */
     SettingsDialog.prototype.generateOptions = function(arg, flag) {
         const gadget = this.getObject(arg);
-        return $.extend( getValues( gadget.items ), Object.fromEntries( (gadget.fields || []).map(ele => {
-            const obj = getValues( ele.items );
-            return [ele.key, flag && $.isEmptyObject( obj ) ? undefined : obj];
+        return $.extend( getValues( gadget.items ), Object.fromEntries( (gadget.fields || []).map(({items, key}) => {
+            const obj = getValues( items );
+            return [key, flag && $.isEmptyObject( obj ) ? undefined : obj];
         }) ) );
     };
     /**
@@ -223,7 +231,7 @@ mw.messages.set( $.extend( wgULS({
         const gadget = this.getObject(arg),
             settings = mw.gadgets[ gadget.name ];
         clearWidgets(settings, gadget.items);
-        (gadget.fields || []).forEach(ele => { clearWidgets(settings[ ele.key ], ele.items); });
+        (gadget.fields || []).forEach(({key, items}) => { clearWidgets(settings[ key ], items); });
     };
     /**
      * @Description: 导出JSON格式的设置
@@ -248,4 +256,5 @@ mw.messages.set( $.extend( wgULS({
     manager.$element.appendTo( document.body );
     manager.addWindows( [dialog] ); // 此时已经初始化
     mw.settingsDialog = dialog; // 创造一个全局对象
+    mw.hook( 'settings.dialog' ).fire({});
 }) ();
