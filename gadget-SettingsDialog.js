@@ -14,7 +14,7 @@
  */
 "use strict";
 /* global mw, $, OO, wgULS */
-window.wgULS = wgULS ||
+window.wgULS = window.wgULS ||
     ((hans, hant) => ['zh-hant', 'zh-tw', 'zh-hk', 'zh-mo'].includes( mw.config.get('wgUserLanguage') ) ? hant : hans);
 // 1. 监视移动版菜单
 (() => {
@@ -48,17 +48,17 @@ mw.messages.set( $.extend( wgULS({
 (() => {
     // 3. 准备HTML元素
     var ready = false, dialog; // 是否是第一次打开对话框
-    const skin = mw.config.get('skin'),
+    const mySkin = mw.config.get('skin'),
         user = mw.config.get('wgUserName'),
         msg = (key) => mw.msg( `gadget-sd-${key}` ),
         $help = $('<div>', {html: [
-        mw.msg('gadget-sd-help', msg(skin)),
+        mw.msg('gadget-sd-help', msg( mySkin )),
         $('<a>', {href: '/user:星海子/Gadget', target: '_blank', text: mw.msg('gadget-sd-helptext')}),
         '，或',
         $('<a>', {href: '#settingsDialog-btns', text: mw.msg('gadget-sd-exporthelp')}), '。' // 链接跳转到“导出”按钮
     ]}),
         $code = $('<div>', {id: 'settingsDialog-code'}),
-        title = `user:${user}/gadgets${skin == 'vector' ? '' : '-mobile'}.json`,
+        title = `user:${user}/gadgets${mySkin == 'vector' ? '' : '-mobile'}.json`,
         $success = $('<div>', {html: [
         mw.msg( 'gadget-sd-success' ),
         $('<a>', {text: mw.msg( 'gadget-sd-json' ), href: mw.util.getUrl( title ), target: '_blank'}),
@@ -87,7 +87,11 @@ mw.messages.set( $.extend( wgULS({
         deleteKeys = (arr, obj) => { arr.forEach(ele => { delete obj[ele]; }); },
         buildWidget = (obj) => { // 生成单个OOUI widget
         obj.widget = new OO.ui[ `${obj.type}InputWidget` ]( $.extend(
-            {disabled: obj.skin && obj.skin != skin, options: obj.options, value: obj.value},
+            {
+                disabled: obj.skin && obj.skin != mySkin || (obj.config || {}).disabled,
+                options: obj.options.filter(({disabled, skin = mySkin}) => skin == mySkin && !disabled),
+                value: obj.value
+            },
             obj.config
         ) );
         const layout = new OO.ui.FieldLayout(obj.widget, {label: msg( obj.key ), help: obj.help});
@@ -156,7 +160,7 @@ mw.messages.set( $.extend( wgULS({
         panel.on('active', () => { buildForm(params, panel.$element); });
         if (ready) { return; }
         // 添加按钮，注意手机版的执行时机
-        if (skin == 'minerva') {
+        if (mySkin == 'minerva') {
             mw.hook( 'mobile.menu' ).add(function($menu) {
                 console.log('Hook: mobile.menu, 开始添加小工具设置按钮');
                 $('<a>', {
