@@ -48,8 +48,10 @@
             const settings = mw.gadgets[name];
             items.forEach(({key, skin, options, config = {}}) => {
                 if (skin && skin != mySkin || config.disabled) { return; }
-                options.filter(({data, disabled}) => settings[key].includes( data ) && !disabled)
-                    .forEach(({callback = () => {}}) => { callback(); });
+                options.filter(({data, disabled}) => {
+                    const val = settings[key] || [];
+                    return (Array.isArray(val) ? val.includes( data ) : val == data) && !disabled;
+                }).forEach(({callback = () => {}}) => { callback(); });
             });
         });
         mw.hook( 'settings.dialog' ).add(obj => {
