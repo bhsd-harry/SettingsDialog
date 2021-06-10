@@ -47,4 +47,4 @@
             lib.forEach((param) => { mw.settingsDialog.addTab( param ); });
         });
     });
-});
+}) ();
