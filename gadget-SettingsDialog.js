@@ -94,7 +94,7 @@ mw.messages.set( $.extend( wgULS({
             },
             obj.config
         ) );
-        const layout = new OO.ui.FieldLayout(obj.widget, {label: msg( obj.key ), help: obj.help});
+        const layout = new OO.ui.FieldLayout(obj.widget, {label: obj.label || msg( obj.key ), help: obj.help});
         deleteKeys(['config', 'label', 'help', 'value'], obj);
         return layout;
     },
@@ -110,7 +110,7 @@ mw.messages.set( $.extend( wgULS({
             $element.append([
                 ...(params.items || []).map(ele => buildWidget( $.extend(ele, {value: settings[ ele.key ]}) ).$element),
                 ...(params.fields || []).map(ele => {
-                    const field = new OO.ui.FieldsetLayout({ label: msg( ele.key ), help: ele.help,
+                    const field = new OO.ui.FieldsetLayout({ label: ele.label || msg( ele.key ), help: ele.help,
                         helpInline: true, items: (ele.items || []).map(item =>
                             buildWidget( $.extend({value: (settings[ ele.key ] || {})[ item.key ]}, item) )
                     )});
@@ -152,7 +152,7 @@ mw.messages.set( $.extend( wgULS({
      * @Param {Object} 数据对象
      */
     SettingsDialog.prototype.addTab = function(params) {
-        const panel = new OO.ui.TabPanelLayout( params.name, {label: msg( params.name )} );
+        const panel = new OO.ui.TabPanelLayout( params.name, {label: params.label || msg( params.name )} );
         delete params.label;
         this.content.addTabPanels( [panel] );
         this.gadgets.push( params );

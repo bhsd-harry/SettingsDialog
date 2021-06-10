@@ -1,7 +1,7 @@
 "use strict";
 /* global mw, $ */
 (() => {
-    const isModule = (name) => ['loading', 'loaded', 'executing', 'ready'].includes( `ext.gadget.${name}` ),
+    const isModule = (name) => ['loading', 'loaded', 'executing', 'ready'].includes( mw.loader.getState( `ext.gadget.${name}` ) ),
         ns = mw.config.get('wgNamespaceNumber'),
         action = mw.config.get('wgAction'),
         mySkin = mw.config.get('skin'),
