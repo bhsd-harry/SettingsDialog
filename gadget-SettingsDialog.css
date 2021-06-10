@@ -45,7 +45,16 @@
 #settingsDialog-btns {
 	text-align: center;
 }
+#settingsDialog > .oo-ui-window-overlay {
+	top: calc(50% - 16px);
+	left: calc(50% - 16px);
+}
 
+.skin-minerva .mw-ajax-loader {
+	background-image: url(/resources/src/mediawiki.legacy/images/ajax-loader.gif?57f34);
+	background-position: center;
+	background-repeat: no-repeat;
+}
 .skin-vector .mw-notification.mw-notification-type-success {
 	background-color: #f8fff8;
 	border-color: #39eb45;

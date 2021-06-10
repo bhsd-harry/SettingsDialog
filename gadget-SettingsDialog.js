@@ -68,13 +68,13 @@ mw.messages.set( $.extend( wgULS({
         btnExport = new OO.ui.ButtonWidget({label: mw.msg('gadget-sd-export'), flags: 'progressive'})
         .on('click', () => {
         btnExport.setDisabled( true );
-        dialog.getPanel().$element.addClass( 'mw-ajax-loader' );
+        dialog.$overlay.addClass( 'mw-ajax-loader' );
         $code.empty();
         dialog.export().then(() => { $code.append( $success ); },
             err => { $failure.text( mw.msg('gadget-sd-failure', err) ).appendTo( $code );
         }).then(() => {
             btnExport.setDisabled( false );
-            dialog.getPanel().$element.removeClass( 'mw-ajax-loader' );
+            dialog.$overlay.removeClass( 'mw-ajax-loader' );
             $code[0].scrollIntoView( {behavior: 'smooth'} );
         });
     }),
