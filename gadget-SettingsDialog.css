@@ -51,9 +51,10 @@
 }
 
 .skin-minerva .mw-ajax-loader {
-	background-image: url(/resources/src/mediawiki.legacy/images/ajax-loader.gif?57f34);
+	background-image: url(//zh.moegirl.org.cn/resources/src/mediawiki.legacy/images/ajax-loader.gif?57f34);
 	background-position: center;
 	background-repeat: no-repeat;
+	padding: 16px;
 }
 .skin-vector .mw-notification.mw-notification-type-success {
 	background-color: #f8fff8;
