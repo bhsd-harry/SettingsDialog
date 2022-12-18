@@ -56,7 +56,7 @@
 	background-repeat: no-repeat;
 	padding: 16px;
 }
-.skin-vector .mw-notification.mw-notification-type-success {
+body:not(.skin-minerva) .mw-notification.mw-notification-type-success {
 	background-color: #f8fff8;
 	border-color: #39eb45;
 }
