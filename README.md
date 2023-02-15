@@ -1,5 +1,5 @@
 # Description
-A tool for managing user gadgets on Moegirl (https://zh.moegirl.org.cn). Special thanks to Moegirl patroller User:星海子 (https://zh.moegirl.org.cn/User:星海子), who collects and introduces all the user gadgets. Please visit https://zh.moegirl.org.cn/User:星海子/Gadget for more information.
+A tool for managing user gadgets on Moegirl (https://zh.moegirl.org.cn). Special thanks to Moegirl patroller User:星海子 (https://zh.moegirl.org.cn/User:星海子), who collects and introduces all the user gadgets. Please visit https://zh.moegirl.org.cn/User:星海子/Gadgets for more information.
 
 The repository owner (https://llwiki.org/zh/User:Bhsd) is one of the administrators of LLWiki. The code here is also an adaptation of an LLWiki gadget named SettingsDialog (https://llwiki.org/zh/Mediawiki:Gadget-SettingsDialog).
 
