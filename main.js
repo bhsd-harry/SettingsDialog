@@ -3,7 +3,7 @@
 mw.loader.load('//cdn.jsdelivr.net/gh/bhsd-harry/SettingsDialog/gadget-SettingsDialog.min.css', 'text/css');
 mw.gadgets = mw.gadgets || {};
 mw.loader.using(['mediawiki.api', 'oojs-ui-windows', 'oojs-ui-widgets']).then(() => {
-    mw.loader.load('/index.php?title=user:bhsd/js/SettingsDialog-v2.js&action=raw&ctype=text/javascript');
+    mw.loader.load('//cdn.jsdelivr.net/gh/bhsd-harry/SettingsDialog/gadget-SettingsDialog.min.js');
     const title = `user:${ mw.config.get('wgUserName') }/gadgets${ mw.config.get('skin') == 'vector' ? '' : '-mobile' }.json`;
     mw.gadgets.json = $.ajax(
         mw.util.getUrl(title, {action: 'raw', ctype: 'application/json'}),
@@ -14,5 +14,5 @@ mw.loader.using(['mediawiki.api', 'oojs-ui-windows', 'oojs-ui-widgets']).then(()
             mw.gadgets[key] = $.extend(mw.gadgets[key], JSON.parse( localStorage.getItem( `gadget-${key}` ) ));
         });
     });
-    mw.loader.load('/index.php?title=user:bhsd/js/lib.js&action=raw&ctype=text/javascript');
+    mw.loader.load('//cdn.jsdelivr.net/gh/bhsd-harry/SettingsDialog/lib.min.js');
 });

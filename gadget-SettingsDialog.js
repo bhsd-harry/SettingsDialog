@@ -50,6 +50,7 @@ mw.messages.set( $.extend( wgULS({
     var ready = false, dialog; // 是否是第一次打开对话框
     const mySkin = mw.config.get('skin'),
         user = mw.config.get('wgUserName'),
+        group = mw.config.get('wgUserGroups'),
         msg = (key) => mw.msg( `gadget-sd-${key}` ),
         $help = $('<div>', {html: [
         mw.msg('gadget-sd-help', msg( mySkin )),
@@ -85,15 +86,19 @@ mw.messages.set( $.extend( wgULS({
     ]}),
         // 4. 准备私有工具函数
         deleteKeys = (arr, obj) => { arr.forEach(ele => { delete obj[ele]; }); },
-        buildWidget = (obj) => { // 生成单个OOUI widget
+        buildWidget = (obj, settings) => { // 生成单个OOUI widget
         obj.widget = new OO.ui[ `${obj.type}InputWidget` ]( $.extend(
             {
-                disabled: obj.skin && obj.skin != mySkin || (obj.config || {}).disabled,
-                options: obj.options.filter(({disabled, skin = mySkin}) => skin == mySkin && !disabled),
-                value: obj.value
+                disabled: obj.skin && obj.skin != mySkin ||
+                    obj.group && !(obj.group || []).some(right => group.includes( right )) ||
+                    (obj.config || {}).disabled,
+                options: obj.options.filter(({disabled, skin = mySkin, userGroup = ['user']}) =>
+                    skin == mySkin && userGroup.some(right => group.includes( right )) && !disabled),
+                value: (settings || {})[ obj.key ]
             },
             obj.config
         ) );
+        if (obj.onchange) { obj.widget.on('change', obj.onchange); }
         const layout = new OO.ui.FieldLayout(obj.widget, {label: obj.label || msg( obj.key ), help: obj.help});
         deleteKeys(['config', 'label', 'help', 'value'], obj);
         return layout;
@@ -108,12 +113,11 @@ mw.messages.set( $.extend( wgULS({
         if (!params.ready) { // 生成表单，只需要执行一次，不用写成SettingsDialog的内置方法
             const settings = mw.gadgets[ params.name ] || {};
             $element.append([
-                ...(params.items || []).map(ele => buildWidget( $.extend(ele, {value: settings[ ele.key ]}) ).$element),
+                ...(params.items || []).map(ele => buildWidget(ele, settings).$element),
                 ...(params.fields || []).map(ele => {
                     const field = new OO.ui.FieldsetLayout({ label: ele.label || msg( ele.key ), help: ele.help,
-                        helpInline: true, items: (ele.items || []).map(item =>
-                            buildWidget( $.extend({value: (settings[ ele.key ] || {})[ item.key ]}, item) )
-                    )});
+                        helpInline: true, items: (ele.items || []).map(item => buildWidget(item, settings[ ele.key ]))
+                    });
                     deleteKeys(['label', 'help'], ele);
                     return field.$element;
                 })
@@ -127,6 +131,7 @@ mw.messages.set( $.extend( wgULS({
     },
         openDialog = (e) => {
         e.preventDefault();
+        $(document.body).removeClass( 'navigation-enabled primary-navigation-enabled' );
         dialog.open().opening.then(() => { buildForm(dialog.getObject(), dialog.getPanel().$element); });
     };
     // 5. 定义SettingsDialog类
